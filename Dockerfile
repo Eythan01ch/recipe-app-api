@@ -37,6 +37,7 @@ RUN python -m venv /py && \
 #    name of the user
         django-user
 # sepsefication of the venv
+
 ENV PATH="/py/bin:$PATH"
 # switching to the django-user
 USER django-user
