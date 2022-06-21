@@ -24,7 +24,7 @@ RUN python -m venv /py && \
 #   installing the requirements
     /py/bin/pip install -r /tmp/requirements.txt && \
 #   if in development then installs dev packages
-    if [$DEV = "true" ]; \
+    if [ $DEV = "true" ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
     fi && \
 #   deleting the tmp dir (requirements) everything that is not needed, should be deleted
