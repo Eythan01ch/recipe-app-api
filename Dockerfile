@@ -21,6 +21,10 @@ ARG DEV=false
 RUN python -m venv /py && \
 #   upgrading pip
     /py/bin/pip install --upgrade pip && \
+#   config our image to work with psycopg with dependencies cleanup
+    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache --virtual .tmp-build-deps  \
+        build-base postgresql-dev musl-dev &&\
 #   installing the requirements
     /py/bin/pip install -r /tmp/requirements.txt && \
 #   if in development then installs dev packages
@@ -29,6 +33,7 @@ RUN python -m venv /py && \
     fi && \
 #   deleting the tmp dir (requirements) everything that is not needed, should be deleted
     rm -rf /tmp && \
+    apk del .tmp-build-deps && \
 #   adding a user to the image, for not using the root user. SECURITY
     adduser \
         --disabled-password \
@@ -37,7 +42,6 @@ RUN python -m venv /py && \
 #    name of the user
         django-user
 # sepsefication of the venv
-
 ENV PATH="/py/bin:$PATH"
 # switching to the django-user
 USER django-user
