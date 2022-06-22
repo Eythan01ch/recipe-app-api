@@ -2,14 +2,16 @@
 Django command to wait for db to be available
 """
 
-
 import time
-from psycopg2 import OperationalError as PsycopgError
-from django.db.utils import OperationalError
+
 from django.core.management.base import BaseCommand
+from django.db.utils import OperationalError
+from psycopg2 import OperationalError as PsycopgError
+
 
 class Command(BaseCommand):
 	"""Django Command to wait for db """
+
 
 	def handle(self, *args, **options):
 		"""entry point for command"""
