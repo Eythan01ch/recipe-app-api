@@ -12,7 +12,6 @@ from psycopg2 import OperationalError as PsycopgError
 class Command(BaseCommand):
 	"""Django Command to wait for db """
 
-
 	def handle(self, *args, **options):
 		"""entry point for command"""
 		# just logging
