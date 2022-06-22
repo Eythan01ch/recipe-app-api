@@ -2,6 +2,7 @@
 ignore =
     W191,
     E101,
+    F401,
 
 exclude =
     migrations,
