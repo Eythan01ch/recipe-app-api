@@ -8,5 +8,3 @@
 .dockerignore,0/5/05a721ebe3ba0754116825ed1359ff1785f4bbac
 D
 requirements.dev.txt,e/5/e57a299cbb96b2af11e488452fbe5404e39cecdc
-@
-requirements.txt,1/9/19359a61ae2446b51b549167b014da2fcf265768
