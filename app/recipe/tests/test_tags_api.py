@@ -11,12 +11,12 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 
-TAGG_URL = reverse('recipe:tag-list')
+TAGS_URL = reverse('recipe:tag-list')
 
 
 def detail_url(tag_id):
 	"""Create and return a detail URL"""
-	return reverse('recipe:tag-list', args=['id'])
+	return reverse('recipe:tag-detail', args=[tag_id])
 
 
 def create_user(email='user@example.com', password='password123'):
@@ -35,7 +35,7 @@ class PublicTagsAPITest(TestCase):
 
 	def test_auth_required(self):
 		"""Test auth is required for retrieving tags"""
-		response = self.client.get(TAGG_URL)
+		response = self.client.get(TAGS_URL)
 		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -56,7 +56,7 @@ class PrivateTagsAPITest(TestCase):
 		Tag.objects.create(user=self.user, name='Vegan')
 		Tag.objects.create(user=self.user, name='Dessert')
 
-		response = self.client.get(TAGG_URL)
+		response = self.client.get(TAGS_URL)
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -70,7 +70,7 @@ class PrivateTagsAPITest(TestCase):
 		Tag.objects.create(user=user2, name='Fruity')
 		tag = Tag.objects.create(user=self.user, name='Comfort')
 
-		response = self.client.get(TAGG_URL)
+		response = self.client.get(TAGS_URL)
 
 		self.assertEqual(status.HTTP_200_OK, response.status_code)
 		self.assertEqual(len(response.data), 1)
@@ -89,3 +89,12 @@ class PrivateTagsAPITest(TestCase):
 		tag.refresh_from_db()
 
 		self.assertEqual(tag.name, payload.get('name'))
+
+	def test_delete_tag(self):
+		"""Test deleting a tag successful"""
+		tag = Tag.objects.create(name='Dessert', user=self.user)
+		url = detail_url(tag.id)
+
+		response = self.client.delete(url)
+		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		self.assertFalse(Tag.objects.filter(id=tag.id).exists())
