@@ -29,6 +29,7 @@ class TagSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
 	"""serializer for Recipe"""
 	tags = TagSerializer(many=True, required=False)
+	ingredients = IngredientSerializer(many=True, required=False)
 
 	class Meta:
 		"""Metadata for RecipeSerializer"""
@@ -67,7 +68,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		"""Create a Recipe"""
 		tags = validated_data.pop('tags', [])
-		ingredients = validated_data.pop('ingredients', ['lorem', 'ipsum'])
+		ingredients = validated_data.pop('ingredients', [])
 		recipe = Recipe.objects.create(**validated_data)
 		self._get_or_create_tags(tags=tags, recipe=recipe)
 		self._get_or_create_ingredients(ingredients=ingredients, recipe=recipe)
@@ -99,3 +100,27 @@ class RecipeDetailSerializer(RecipeSerializer):
 	class Meta(RecipeSerializer.Meta):
 		"""Metadata for RecipeDetailSerializer"""
 		fields = RecipeSerializer.Meta.fields + ['description']
+
+
+class RecipeImageSerializer(serializers.ModelSerializer):
+	""" This class is a serializer for the RecipeImage model"""
+
+	class Meta:
+		"""	# The Meta class is a special class that allows us to set extra options on our serializer.
+	#
+	# In this case, we're telling Django that the model that this serializer should be interacting with is the Recipe model.
+	#
+	# We're also telling Django that the only fields that should be included in the serialized data are the id and image
+	# fields.
+	#
+	# We're also telling Django that the id field should be read-only, meaning that it should not be included in the data
+	# that is sent to the API when creating or updating a recipe.
+	#
+	# Finally, we're telling Django that the image field is required.
+	#
+	# This will cause Django to return an error if the image field is not included in the data that is sent to the API when
+	# creating a recipe"""
+		model = Recipe
+		fields = ['id', 'image', ]
+		read_only_fields = ['id']
+		extra_kwargs = {'image': {'required': True}}

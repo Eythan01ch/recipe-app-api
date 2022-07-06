@@ -17,6 +17,7 @@ services:
     #   for synchronization
     volumes:
       - ./app:/app
+      - dev-static-data:/vol/web
     #   we have to define a command, but we will rewrite or change while running
     command: >
       sh -c 
@@ -43,4 +44,5 @@ services:
 
 volumes:
   dev-db-data:
+  dev-static-data:
 

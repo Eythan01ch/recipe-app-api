@@ -8,6 +8,23 @@ from django.contrib.auth.models import (
 	PermissionsMixin,
 )
 from django.db import models
+import uuid
+import os
+
+
+def recipe_image_file_path(instance, filename):
+	"""
+	We're going to take the filename that was uploaded, split it into the filename and the extension, then create a new
+	filename using a uuid, and then join the filename with the extension to the uploads/recipe directory
+
+	:param instance: the model instance where the file is being attached
+	:param filename: The name of the file that was uploaded
+	:return: The path to the file.
+	"""
+	ext = os.path.splitext(filename)[1]
+	filename = f'{uuid.uuid4()}{ext}'
+	return os.path.join('uploads', 'recipe', filename)
+
 
 class UserManager(BaseUserManager):
 	"""MANAGER for users! """
@@ -60,6 +77,7 @@ class Recipe(models.Model):
 	link = models.CharField(blank=True, max_length=255)
 	tags = models.ManyToManyField('Tag')
 	ingredients = models.ManyToManyField('Ingredient')
+	image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 
 	def __str__(self):
 		return f'{self.title}'
@@ -89,5 +107,3 @@ class Ingredient(models.Model):
 
 	def __str__(self):
 		return self.name
-
-

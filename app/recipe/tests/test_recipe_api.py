@@ -2,8 +2,11 @@
 Test for recipe API
 """
 
+import os
+import tempfile
 from decimal import Decimal
 
+from PIL import Image
 from core.models import Ingredient, Recipe, Tag
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -19,6 +22,18 @@ RECIPES_URL = reverse('recipe:recipe-list')
 def detail_url(recipe_id):
 	"""Create and Return a Recipe detail url"""
 	return reverse('recipe:recipe-detail', args=[recipe_id])
+
+
+def image_upload_url(recipe_id):
+	"""
+	It returns the url for the image upload view for a given recipe id
+
+	:param recipe_id: The id of the recipe that we want to upload an image to
+	:return: The url for the recipe-upload-image view.
+	"""
+
+
+	return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 
 def create_recipe(user, **params):
@@ -375,3 +390,157 @@ class PrivateRecipeAPITest(TestCase):
 				user=self.user,
 			).exists()
 			self.assertTrue(exists)
+
+	def test_create_ingredient_on_update(self):
+		recipe = create_recipe(user=self.user)
+
+		payload = {'ingredients': [{'name': 'Limes'}]}
+
+		url = detail_url(recipe.id)
+
+		response = self.client.patch(url, payload, format='json')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		new_ingredient = Ingredient.objects.get(user=self.user, name='Limes')
+		self.assertIn(new_ingredient, recipe.ingredients.all())
+
+	def test_update_recipe_assign_ingredient(self):
+		"""Test assigning an existing ingredient to a recipe when updating"""
+		ingredient_salmon = Ingredient.objects.create(user=self.user, name='Salmon')
+
+		recipe = create_recipe(user=self.user)
+		recipe.ingredients.add(ingredient_salmon)
+
+		ingredient_pepper = Ingredient.objects.create(user=self.user, name='Pepper')
+
+		payload = {
+			'ingredients': [
+				{'name': 'Pepper'}
+			]
+		}
+
+		url = detail_url(recipe.id)
+
+		response = self.client.patch(url, payload, format='json')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertIn(ingredient_pepper, recipe.ingredients.all())
+		self.assertNotIn(ingredient_salmon, recipe.ingredients.all())
+
+	def test_clear_recipe_ingredients(self):
+		ingredient = Ingredient.objects.create(user=self.user, name='Salt')
+		recipe = create_recipe(user=self.user)
+		recipe.ingredients.add(ingredient)
+
+		url = detail_url(recipe.id)
+		payload = {
+			'ingredients': []
+		}
+		response = self.client.patch(url, payload, format='json')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(recipe.ingredients.count(), 0)
+
+	def test_filter_by_tags(self):
+		"""
+		Filter By tags Test
+		We create 3 recipes, 2 tags, and assign the tags to the first 2 recipes.
+		Then we make a request to the API with the tags in the query string.
+		We assert that the response is 200, and that the recipes with the tags are in the response.
+		"""
+
+		r1 = create_recipe(user=self.user, title='Thai Curry')
+		r2 = create_recipe(user=self.user, title='Rice Honey')
+		t1 = Tag.objects.create(user=self.user, name='vegan')
+		t2 = Tag.objects.create(user=self.user, name='vegetarian')
+		r1.tags.add(t1)
+		r2.tags.add(t2)
+		r3 = create_recipe(user=self.user, title='Chicken')
+
+		params = {'tags': f'{t1.id}, {t2.id}'}
+		response = self.client.get(RECIPES_URL, params)
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+		s1 = RecipeSerializer(r1)
+		s2 = RecipeSerializer(r2)
+		s3 = RecipeSerializer(r3)
+		self.assertNotIn(s3.data, response.data)
+		self.assertIn(s2.data, response.data)
+		self.assertIn(s1.data, response.data)
+
+	def test_filter_by_ingredients(self):
+		r1 = create_recipe(user=self.user, title='Thai Curry')
+		r2 = create_recipe(user=self.user, title='Rice Honey')
+		r3 = create_recipe(user=self.user, title='Chicken')
+
+		in1 = Ingredient.objects.create(user=self.user, name='Meat')
+		in2 = Ingredient.objects.create(user=self.user, name='Rice')
+
+		r1.ingredients.add(in1)
+		r2.ingredients.add(in2)
+
+		params = {'ingredients': f'{in1.id}, {in2.id}'}
+		response = self.client.get(RECIPES_URL, params)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+		s1 = RecipeSerializer(r1)
+		s2 = RecipeSerializer(r2)
+		s3 = RecipeSerializer(r3)
+
+		self.assertNotIn(s3.data, response.data)
+		self.assertIn(s2.data, response.data)
+		self.assertIn(s1.data, response.data)
+
+
+class ImageUploadTests(TestCase):
+	"""
+	This class tests the image upload functionality of the application.
+	"""
+
+	def setUp(self):
+		"""
+		We create a user, force authenticate the user, and then create a recipe
+		"""
+		self.client = APIClient()
+		self.user = get_user_model().objects.create_user(
+			'user@example.com',
+			'password',
+		)
+		self.client.force_authenticate(self.user)
+		self.recipe = create_recipe(user=self.user)
+
+	def tearDown(self):
+		"""
+		It deletes the image file associated with the recipe object
+		"""
+		self.recipe.image.delete()
+
+	def test_upload_image(self):
+		"""
+		We create a temporary file, save an image to it, then use that file as the payload for a POST request to the image
+		upload endpoint then perform Tests
+		"""
+		url = image_upload_url(self.recipe.id)
+		with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+			img = Image.new('RGB', (10, 10))
+			img.save(image_file, format='JPEG')
+			image_file.seek(0)
+			payload = {'image': image_file}
+			response = self.client.post(url, payload, foramt='multipart')
+
+		self.recipe.refresh_from_db()
+
+		# testing the status code of the response.
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		# Checking if the image is in the response data.
+		self.assertIn('image', response.data)
+		# Checking if the image exists in the path.
+		self.assertTrue(os.path.exists(self.recipe.image.path))
+
+	def test_upload_image_bad_request(self):
+		url = image_upload_url(self.recipe.id)
+		payload = {'image': 'notanimage'}
+		response = self.client.post(url, payload)
+
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

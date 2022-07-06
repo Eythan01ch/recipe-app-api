@@ -22,9 +22,9 @@ RUN python -m venv /py && \
 #   upgrading pip
     /py/bin/pip install --upgrade pip && \
 #   config our image to work with psycopg with dependencies cleanup
-    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache postgresql-client jpeg-dev && \
     apk add --update --no-cache --virtual .tmp-build-deps  \
-        build-base postgresql-dev musl-dev &&\
+        build-base postgresql-dev musl-dev zlib zlib-dev &&\
 #   installing the requirements
     /py/bin/pip install -r /tmp/requirements.txt && \
 #   if in development then installs dev packages
@@ -40,7 +40,13 @@ RUN python -m venv /py && \
 #    not needing a home dir
         --no-create-home \
 #    name of the user
-        django-user
+        django-user && \
+    mkdir -p /vol/web/media &&\
+    mkdir -p /vol/web/static &&\
+    chown -R django-user:django-user /vol && \
+    chmod -R 755 /vol
+
+
 # sepsefication of the venv
 ENV PATH="/py/bin:$PATH"
 # switching to the django-user

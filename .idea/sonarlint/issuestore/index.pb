@@ -1,11 +1,6 @@
 
 9
 	README.md,8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
-:
-
-Dockerfile,6/6/6651ddff6eb82c840ced7c1dddee15c6e1913dd4
-B
-docker-compose.yml,3/5/35b8c13cf2eb2a194eada000eb310d65aed53b2a
 =
 .dockerignore,0/5/05a721ebe3ba0754116825ed1359ff1785f4bbac
 L
@@ -16,8 +11,6 @@ O
 +app/core/management/commands/wait_for_db.py,3/6/368b1ccee4efed3c812a742724cb62eaf0251e81
 =
 app/manage.py,5/6/56b0600f8009885dd185565da6ef3a8f82ad7b27
-?
-app/app/wsgi.py,d/2/d271f155d1efafd92fcda9c8096034c6356c0d17
 D
 requirements.dev.txt,e/5/e57a299cbb96b2af11e488452fbe5404e39cecdc
 G
@@ -38,11 +31,20 @@ B
 app/recipe/apps.py,2/4/24b879552f2788ae42a75bc3ee462b5c61ef2c1a
 R
 "app/core/migrations/0002_recipe.py,6/4/640c4de7ecbbf46c1d27ff28b5e458b409847cb2
-C
-app/app/settings.py,1/5/15553f0d0a591c8d0334d386110c265a5f8f17f4
 L
 app/recipe/tests/__init__.py,4/a/4a0254a67d61bf2508ed8c63ca30f7728dd7fe14
 O
 app/user/tests/test_user_api.py,d/9/d9dbdadb6c1ac5aeac0afab655cbb995170bee24
+A
+app/core/admin.py,4/a/4a49d05f610b33bcfb98a682ea04ff46e10ac04f
+^
+.app/core/migrations/0004_auto_20220630_1301.py,b/b/bb3402615017f7e3edc3a8bb73ad019343c4ef25
+^
+.app/core/migrations/0003_auto_20220628_1313.py,5/d/5deea589981a1461c6e35922a97917a631322c2a
+B
+app/recipe/urls.py,2/6/26034ad29758bb07ea265dc733fc263345825361
+:
+
+.gitignore,a/5/a5cc2925ca8258af241be7e5b0381edf30266302
 ?
-app/app/urls.py,e/3/e388adcb822ad487cac97efd2204e600327c1313
+app/app/wsgi.py,d/2/d271f155d1efafd92fcda9c8096034c6356c0d17
