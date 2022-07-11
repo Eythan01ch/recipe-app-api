@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFER 1
 # GETTING THE REQUIREMENTS ON THE IMAGE
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+COPY ./scripts /scripts
 # GETTING THE APP ITSELF
 COPY ./app /app
 # SETTING THE WORK DIRECTORY
@@ -24,7 +25,7 @@ RUN python -m venv /py && \
 #   config our image to work with psycopg with dependencies cleanup
     apk add --update --no-cache postgresql-client jpeg-dev && \
     apk add --update --no-cache --virtual .tmp-build-deps  \
-        build-base postgresql-dev musl-dev zlib zlib-dev &&\
+        build-base postgresql-dev musl-dev zlib zlib-dev linux-headers &&\
 #   installing the requirements
     /py/bin/pip install -r /tmp/requirements.txt && \
 #   if in development then installs dev packages
@@ -44,11 +45,13 @@ RUN python -m venv /py && \
     mkdir -p /vol/web/media &&\
     mkdir -p /vol/web/static &&\
     chown -R django-user:django-user /vol && \
-    chmod -R 755 /vol
+    chmod -R 755 /vol && \
+    chmod -R +x /scripts
 
 
 # sepsefication of the venv
-ENV PATH="/py/bin:$PATH"
+ENV PATH="/scripts:/py/bin:$PATH"
 # switching to the django-user
 USER django-user
 
+CMD ['run.sh']
