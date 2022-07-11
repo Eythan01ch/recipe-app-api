@@ -54,4 +54,4 @@ ENV PATH="/scripts:/py/bin:$PATH"
 # switching to the django-user
 USER django-user
 
-CMD ['run.sh']
+CMD ["run.sh"]
